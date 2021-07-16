@@ -3,8 +3,11 @@ package kep
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/google/go-github/v37/github"
+	"github.com/salaxander/kepctl/pkg/auth"
+	"golang.org/x/oauth2"
 )
 
 const owner = "kubernetes"
@@ -13,13 +16,19 @@ const repo = "enhancements"
 var c *github.Client
 
 func init() {
-	c = github.NewClient(nil)
+	client := oauth2.NewClient(context.Background(), &auth.TokenSource{})
+	c = github.NewClient(client)
 }
 
 type KEP struct {
 	IssueNumber string
+	Milstone    string
+	SIGs        []string
+	Stage       string
 	Title       string
 	URL         string
+
+	Tracked bool
 }
 
 func Get(kepNumber string) *KEP {
@@ -31,30 +40,59 @@ func Get(kepNumber string) *KEP {
 	if err != nil {
 
 	}
-	return &KEP{
-		IssueNumber: strconv.Itoa(*issue.Number),
-		Title:       *issue.Title,
-		URL:         *issue.HTMLURL,
+	kep := issueToKEP(issue)
+	if issue.Milestone != nil {
+		kep.Milstone = *issue.Milestone.Title
 	}
+
+	return kep
 }
 
-func List() []*KEP {
+func List(milestone string, tracked bool) []*KEP {
 	var keps []*KEP
-	issues, _, err := c.Issues.ListByRepo(context.Background(), owner, repo, &github.IssueListByRepoOptions{ListOptions: github.ListOptions{PerPage: 500}})
-	if err != nil {
-
+	var allIssues []*github.Issue
+	opt := &github.IssueListByRepoOptions{}
+	for {
+		issues, resp, err := c.Issues.ListByRepo(context.Background(), owner, repo, opt)
+		if err != nil {
+		}
+		allIssues = append(allIssues, issues...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
 	}
-	for i := range issues {
-		keps = append(keps, issueToKEP(issues[i]))
+	for i := range allIssues {
+		keps = append(keps, issueToKEP(allIssues[i]))
 	}
 	return keps
 }
 
 func issueToKEP(issue *github.Issue) *KEP {
 	numStr := strconv.Itoa(*issue.Number)
-	return &KEP{
+	kep := &KEP{
 		IssueNumber: numStr,
 		Title:       *issue.Title,
 		URL:         *issue.HTMLURL,
 	}
+	if issue.Milestone != nil {
+		kep.Milstone = *issue.Milestone.Title
+	}
+	for i := range issue.Labels {
+		if strings.Contains(*issue.Labels[i].Name, "sig") {
+			kep.SIGs = append(kep.SIGs, *issue.Labels[i].Name)
+		}
+		if strings.Contains(*issue.Labels[i].Name, "stage") {
+			kep.Stage = *issue.Labels[i].Name
+		}
+		if *issue.Labels[i].Name == "tracked/yes" {
+			kep.Tracked = true
+		}
+	}
+
+	return kep
+}
+
+func filterFunc(issues []*github.Issue, filterFormat *KEP) []*github.Issue {
+	return nil
 }

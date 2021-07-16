@@ -17,43 +17,41 @@ package cmd
 
 import (
 	"github.com/pterm/pterm"
-	"github.com/salaxander/kepctl/pkg/kep"
 	"github.com/spf13/cobra"
+
+	"github.com/salaxander/kepctl/pkg/kep"
 )
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Get a list of KEPs",
+	Long:  `Get a list of KEPs with options to filter by tracked status and milestones.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		keps := kep.List()
+		listSpinner, _ := pterm.DefaultSpinner.Start("Fetching KEPs...")
+		keps := kep.List(milestone, tracked)
 		tableData := [][]string{{"KEP Number", "Title", "URL"}}
 		for i := range keps {
 			kep := []string{keps[i].IssueNumber, keps[i].Title, keps[i].URL}
 			tableData = append(tableData, kep)
 		}
-
 		pterm.DefaultTable.WithHasHeader().WithData(tableData).Render()
+		listSpinner.Success("Retrieved KEPs.")
 	},
 }
+
+var milestone string
+var stage string
+
+var all bool
+var tracked bool
 
 func init() {
 	rootCmd.AddCommand(listCmd)
 
-	// Here you will define your flags and configuration settings.
+	listCmd.Flags().StringVarP(&milestone, "milestone", "m", "", "Milestone to filter KEPs by.")
+	listCmd.Flags().StringVarP(&stage, "stage", "s", "", "Stage to filter KEPs by (alpha|beta|stable).")
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	listCmd.Flags().BoolVarP(&all, "all", "a", false, "Show all KEPs, including closed.")
+	listCmd.Flags().BoolVarP(&tracked, "tracked", "t", false, "Filter for tracked KEPs only.")
 }

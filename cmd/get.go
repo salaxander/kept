@@ -16,14 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-	"log"
-	"os/exec"
-	"runtime"
-
 	"github.com/pterm/pterm"
-	"github.com/salaxander/kepctl/pkg/kep"
 	"github.com/spf13/cobra"
+
+	"github.com/salaxander/kepctl/pkg/kep"
+	"github.com/salaxander/kepctl/pkg/util"
 )
 
 // getCmd represents the get command
@@ -36,22 +33,26 @@ var getCmd = &cobra.Command{
 
 		k := kep.Get(args[0])
 		if open {
-			openbrowser(k.URL)
+			util.Openbrowser(k.URL)
 			return
 		}
 
 		headerStyle := pterm.NewStyle(pterm.FgLightCyan, pterm.Bold)
 		pterm.DefaultSection.WithStyle(headerStyle).WithIndentCharacter("\u2638\ufe0f ").Printfln("KEP %s", k.IssueNumber)
-		pterm.DefaultBulletList.WithItems([]pterm.BulletListItem{
-			{
-				Level: 0,
-				Text:  pterm.Sprintf("Title: %s", k.Title),
-			},
-			{
-				Level: 0,
-				Text:  pterm.Sprintf("URL: %s", k.URL),
-			},
-		}).Render()
+		pterm.Printfln("Title: %s", k.Title)
+		if k.Milstone != "" {
+			pterm.Printfln("Milestone: %s", k.Milstone)
+		}
+		if k.SIGs != nil {
+			pterm.Println("SIGs: %v", k.SIGs)
+		}
+		if k.Stage != "" {
+			pterm.Println("Stage: %s", k.Stage)
+		}
+		if k.Tracked {
+			pterm.Println("Tracked: yes")
+		}
+		pterm.Printfln("URL: %s", k.URL)
 	},
 }
 
@@ -61,23 +62,4 @@ func init() {
 	rootCmd.AddCommand(getCmd)
 
 	getCmd.Flags().BoolVarP(&open, "open", "o", false, "Open the KEP in your default web browser.")
-}
-
-func openbrowser(url string) {
-	var err error
-
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-
 }
