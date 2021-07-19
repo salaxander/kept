@@ -43,8 +43,8 @@ var getCmd = &cobra.Command{
 		if k.Milstone != "" {
 			pterm.Printfln("Milestone: %s", k.Milstone)
 		}
-		if k.SIGs != nil {
-			pterm.Println("SIGs: %v", k.SIGs)
+		if k.SIG != "" {
+			pterm.Println("SIG: %s", k.SIG)
 		}
 		if k.Stage != "" {
 			pterm.Println("Stage: %s", k.Stage)

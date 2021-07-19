@@ -2,6 +2,7 @@ package kep
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -23,7 +24,7 @@ func init() {
 type KEP struct {
 	IssueNumber string
 	Milstone    string
-	SIGs        []string
+	SIG         string
 	Stage       string
 	Title       string
 	URL         string
@@ -48,7 +49,7 @@ func Get(kepNumber string) *KEP {
 	return kep
 }
 
-func List(milestone string, tracked bool) []*KEP {
+func List(milestone string, sig string, stage string, tracked bool) []*KEP {
 	var keps []*KEP
 	var allIssues []*github.Issue
 	opt := &github.IssueListByRepoOptions{}
@@ -61,6 +62,18 @@ func List(milestone string, tracked bool) []*KEP {
 			break
 		}
 		opt.Page = resp.NextPage
+	}
+	if milestone != "" {
+		allIssues = filterMilestone(milestone, allIssues)
+	}
+	if sig != "" {
+		allIssues = filterSIG(sig, allIssues)
+	}
+	if stage != "" {
+		allIssues = filterStage(stage, allIssues)
+	}
+	if tracked {
+		allIssues = filterTracked(allIssues)
 	}
 	for i := range allIssues {
 		keps = append(keps, issueToKEP(allIssues[i]))
@@ -80,7 +93,7 @@ func issueToKEP(issue *github.Issue) *KEP {
 	}
 	for i := range issue.Labels {
 		if strings.Contains(*issue.Labels[i].Name, "sig") {
-			kep.SIGs = append(kep.SIGs, *issue.Labels[i].Name)
+			kep.SIG = *issue.Labels[i].Name
 		}
 		if strings.Contains(*issue.Labels[i].Name, "stage") {
 			kep.Stage = *issue.Labels[i].Name
@@ -93,6 +106,50 @@ func issueToKEP(issue *github.Issue) *KEP {
 	return kep
 }
 
-func filterFunc(issues []*github.Issue, filterFormat *KEP) []*github.Issue {
-	return nil
+func filterMilestone(milestone string, issues []*github.Issue) []*github.Issue {
+	result := []*github.Issue{}
+	for i := range issues {
+		if issues[i].Milestone != nil {
+			if *issues[i].Milestone.Title == milestone {
+				result = append(result, issues[i])
+			}
+		}
+	}
+	return result
+}
+
+func filterSIG(sig string, issues []*github.Issue) []*github.Issue {
+	result := []*github.Issue{}
+	for i := range issues {
+		for l := range issues[i].Labels {
+			if *issues[i].Labels[l].Name == fmt.Sprintf("sig/%s", sig) {
+				result = append(result, issues[i])
+			}
+		}
+	}
+	return result
+}
+
+func filterStage(stage string, issues []*github.Issue) []*github.Issue {
+	result := []*github.Issue{}
+	for i := range issues {
+		for l := range issues[i].Labels {
+			if *issues[i].Labels[l].Name == fmt.Sprintf("stage/%s", stage) {
+				result = append(result, issues[i])
+			}
+		}
+	}
+	return result
+}
+
+func filterTracked(issues []*github.Issue) []*github.Issue {
+	result := []*github.Issue{}
+	for i := range issues {
+		for l := range issues[i].Labels {
+			if *issues[i].Labels[l].Name == "tracked/yes" {
+				result = append(result, issues[i])
+			}
+		}
+	}
+	return result
 }

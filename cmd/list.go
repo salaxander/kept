@@ -28,8 +28,9 @@ var listCmd = &cobra.Command{
 	Short: "Get a list of KEPs",
 	Long:  `Get a list of KEPs with options to filter by tracked status and milestones.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		pterm.Println("")
 		listSpinner, _ := pterm.DefaultSpinner.Start("Fetching KEPs...")
-		keps := kep.List(milestone, tracked)
+		keps := kep.List(milestone, sig, stage, tracked)
 		tableData := [][]string{{"KEP Number", "Title", "URL"}}
 		for i := range keps {
 			kep := []string{keps[i].IssueNumber, keps[i].Title, keps[i].URL}
@@ -42,6 +43,7 @@ var listCmd = &cobra.Command{
 
 var milestone string
 var stage string
+var sig string
 
 var all bool
 var tracked bool
@@ -50,7 +52,8 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().StringVarP(&milestone, "milestone", "m", "", "Milestone to filter KEPs by.")
-	listCmd.Flags().StringVarP(&stage, "stage", "s", "", "Stage to filter KEPs by (alpha|beta|stable).")
+	listCmd.Flags().StringVarP(&stage, "stage", "", "", "Stage to filter KEPs by (alpha|beta|stable).")
+	listCmd.Flags().StringVarP(&sig, "sig", "", "", "SIG to filter KEPs by.")
 
 	listCmd.Flags().BoolVarP(&all, "all", "a", false, "Show all KEPs, including closed.")
 	listCmd.Flags().BoolVarP(&tracked, "tracked", "t", false, "Filter for tracked KEPs only.")
