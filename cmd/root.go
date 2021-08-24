@@ -26,6 +26,10 @@ import (
 )
 
 var cfgFile string
+var milestone string
+var sig string
+var stage string
+var tracked bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

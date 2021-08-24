@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/salaxander/kepctl/cmd"
+import "github.com/salaxander/kept/cmd"
 
 func main() {
 	cmd.Execute()

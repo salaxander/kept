@@ -1,4 +1,4 @@
-module github.com/salaxander/kepctl
+module github.com/salaxander/kept
 
 go 1.16
 

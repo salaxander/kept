@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v37/github"
-	"github.com/salaxander/kepctl/pkg/auth"
+	"github.com/salaxander/kept/pkg/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -33,18 +33,9 @@ type KEP struct {
 }
 
 func Get(kepNumber string) *KEP {
-	issueInt, err := strconv.Atoi(kepNumber)
-	if err != nil {
-
-	}
-	issue, _, err := c.Issues.Get(context.Background(), owner, repo, issueInt)
-	if err != nil {
-
-	}
+	issueInt, _ := strconv.Atoi(kepNumber)
+	issue, _, _ := c.Issues.Get(context.Background(), owner, repo, issueInt)
 	kep := issueToKEP(issue)
-	if issue.Milestone != nil {
-		kep.Milstone = *issue.Milestone.Title
-	}
 
 	return kep
 }
@@ -54,9 +45,7 @@ func List(milestone string, sig string, stage string, tracked bool) []*KEP {
 	var allIssues []*github.Issue
 	opt := &github.IssueListByRepoOptions{}
 	for {
-		issues, resp, err := c.Issues.ListByRepo(context.Background(), owner, repo, opt)
-		if err != nil {
-		}
+		issues, resp, _ := c.Issues.ListByRepo(context.Background(), owner, repo, opt)
 		allIssues = append(allIssues, issues...)
 		if resp.NextPage == 0 {
 			break
@@ -93,10 +82,10 @@ func issueToKEP(issue *github.Issue) *KEP {
 	}
 	for i := range issue.Labels {
 		if strings.Contains(*issue.Labels[i].Name, "sig") {
-			kep.SIG = *issue.Labels[i].Name
+			kep.SIG = splitLabel(*issue.Labels[i].Name)
 		}
 		if strings.Contains(*issue.Labels[i].Name, "stage") {
-			kep.Stage = *issue.Labels[i].Name
+			kep.Stage = splitLabel(*issue.Labels[i].Name)
 		}
 		if *issue.Labels[i].Name == "tracked/yes" {
 			kep.Tracked = true
@@ -152,4 +141,9 @@ func filterTracked(issues []*github.Issue) []*github.Issue {
 		}
 	}
 	return result
+}
+
+func splitLabel(label string) string {
+	s := strings.Split(label, "/")
+	return s[1]
 }

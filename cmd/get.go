@@ -19,8 +19,8 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
-	"github.com/salaxander/kepctl/pkg/kep"
-	"github.com/salaxander/kepctl/pkg/util"
+	"github.com/salaxander/kept/pkg/kep"
+	"github.com/salaxander/kept/pkg/util"
 )
 
 // getCmd represents the get command
@@ -30,7 +30,8 @@ var getCmd = &cobra.Command{
 	Long:  `Get a KEP by providing an individual KEP number.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-
+		pterm.Println("")
+		getSpinner, _ := pterm.DefaultSpinner.Start("Getting KEP...")
 		k := kep.Get(args[0])
 		if open {
 			util.Openbrowser(k.URL)
@@ -53,6 +54,9 @@ var getCmd = &cobra.Command{
 			pterm.Println("Tracked: yes")
 		}
 		pterm.Printfln("URL: %s", k.URL)
+
+		pterm.Println("")
+		getSpinner.Success("Found KEP!")
 	},
 }
 

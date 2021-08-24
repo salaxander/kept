@@ -19,7 +19,7 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 
-	"github.com/salaxander/kepctl/pkg/kep"
+	"github.com/salaxander/kept/pkg/kep"
 )
 
 // listCmd represents the list command
@@ -37,24 +37,16 @@ var listCmd = &cobra.Command{
 			tableData = append(tableData, kep)
 		}
 		pterm.DefaultTable.WithHasHeader().WithData(tableData).Render()
+		pterm.Println("")
 		listSpinner.Success("Retrieved KEPs.")
 	},
 }
-
-var milestone string
-var stage string
-var sig string
-
-var all bool
-var tracked bool
 
 func init() {
 	rootCmd.AddCommand(listCmd)
 
 	listCmd.Flags().StringVarP(&milestone, "milestone", "m", "", "Milestone to filter KEPs by.")
-	listCmd.Flags().StringVarP(&stage, "stage", "", "", "Stage to filter KEPs by (alpha|beta|stable).")
 	listCmd.Flags().StringVarP(&sig, "sig", "", "", "SIG to filter KEPs by.")
-
-	listCmd.Flags().BoolVarP(&all, "all", "a", false, "Show all KEPs, including closed.")
+	listCmd.Flags().StringVarP(&stage, "stage", "", "", "Stage to filter KEPs by (alpha|beta|stable).")
 	listCmd.Flags().BoolVarP(&tracked, "tracked", "t", false, "Filter for tracked KEPs only.")
 }

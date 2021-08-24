@@ -5,8 +5,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/salaxander/kepctl/pkg/auth"
-	"github.com/salaxander/kepctl/pkg/util"
+	"github.com/salaxander/kept/pkg/auth"
+	"github.com/salaxander/kept/pkg/util"
 )
 
 // loginCmd represents the login command
