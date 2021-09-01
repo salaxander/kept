@@ -47,6 +47,6 @@ func init() {
 
 	listCmd.Flags().StringVarP(&milestone, "milestone", "m", "", "Milestone to filter KEPs by.")
 	listCmd.Flags().StringVarP(&sig, "sig", "s", "", "SIG to filter KEPs by.")
-	listCmd.Flags().StringVarP(&stage, "stage", "st", "", "Stage to filter KEPs by (alpha|beta|stable).")
+	listCmd.Flags().StringVarP(&stage, "stage", "g", "", "Stage to filter KEPs by (alpha|beta|stable).")
 	listCmd.Flags().BoolVarP(&tracked, "tracked", "t", false, "Filter for tracked KEPs only.")
 }
