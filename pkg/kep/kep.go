@@ -25,6 +25,7 @@ func init() {
 }
 
 type KEP struct {
+	// KEP file metadata
 	Title             string            `yaml:"title"`
 	IssueNumber       string            `yaml:"kep-number"`
 	SIG               string            `yaml:"owning-sig"`
@@ -34,16 +35,19 @@ type KEP struct {
 	Stage             string            `yaml:"stage"`
 	LatestMilestone   string            `yaml:"latest-milestone"`
 	Milestone         map[string]string `yaml:"milestone"`
-	URL               string
 
-	Tracked bool
+	// GitHub issue metadata
+	IssueMilestone string
+	IssueStage     string
+	Tracked        bool
+	URL            string
 }
 
 func Get(kepNumber string) (*KEP, error) {
 	var kep KEP
 
 	// Set the KEP URL
-	kep.URL = fmt.Sprintf("https://github.com/kubernetes/enhancements/issues/%s", kepNumber)
+	kep.URL = fmt.Sprintf("https://github.com/%s/%s/issues/%s", owner, repo, kepNumber)
 
 	// Get the KEP issue to determine SIG from label.
 	issueInt, _ := strconv.Atoi(kepNumber)
@@ -51,6 +55,9 @@ func Get(kepNumber string) (*KEP, error) {
 	if err != nil {
 		return nil, err
 	}
+	kep.IssueMilestone = *issue.Milestone.Title
+	kep.IssueStage = findStage(issue)
+	kep.Tracked = isTracked(issue)
 
 	// Determine the KEP's SIG.
 	sig := findSIG(issue)
@@ -79,6 +86,17 @@ func findSIG(issue *github.Issue) string {
 	return ""
 }
 
+func findStage(issue *github.Issue) string {
+	for i := range issue.Labels {
+		label := issue.Labels[i]
+		if strings.Contains(*issue.Labels[i].Name, "stage") {
+			s := strings.Split(*label.Name, "/")
+			return s[1]
+		}
+	}
+	return ""
+}
+
 func getKEPYaml(sig, kepNumber string) (string, error) {
 	path := fmt.Sprintf("/keps/sig-%s/", sig)
 	_, kepDirContent, _, err := c.Repositories.GetContents(context.Background(), "kubernetes", "enhancements", path, &github.RepositoryContentGetOptions{})
@@ -97,4 +115,14 @@ func getKEPYaml(sig, kepNumber string) (string, error) {
 		}
 	}
 	return "", nil
+}
+
+func isTracked(issue *github.Issue) bool {
+	for i := range issue.Labels {
+		label := issue.Labels[i]
+		if strings.Contains(*label.Name, "tracked") {
+			return true
+		}
+	}
+	return false
 }
