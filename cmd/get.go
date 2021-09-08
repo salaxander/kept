@@ -41,8 +41,8 @@ var getCmd = &cobra.Command{
 		headerStyle := pterm.NewStyle(pterm.FgLightCyan, pterm.Bold)
 		pterm.DefaultSection.WithStyle(headerStyle).WithIndentCharacter("\u2638\ufe0f ").Printfln("KEP %s", k.IssueNumber)
 		pterm.Printfln("Title: %s", k.Title)
-		if k.Milstone != "" {
-			pterm.Printfln("Milestone: %s", k.Milstone)
+		if k.LatestMilestone != "" {
+			pterm.Printfln("Milestone: %s", k.LatestMilestone)
 		}
 		if k.SIG != "" {
 			pterm.Println("SIG: %s", k.SIG)

@@ -22,12 +22,16 @@ func init() {
 }
 
 type KEP struct {
-	IssueNumber string
-	Milstone    string
-	SIG         string
-	Stage       string
-	Title       string
-	URL         string
+	Title             string            `yaml:"title"`
+	IssueNumber       string            `yaml:"kep-number"`
+	SIG               string            `yaml:"owning-sig"`
+	ParticipatingSIGs []string          `yaml:"participating-sigs"`
+	Status            string            `yaml:"status"`
+	CreationDate      string            `yaml:"creation-date"`
+	Stage             string            `yaml:"stage"`
+	LatestMilestone   string            `yaml:"latest-milestone"`
+	Milestone         map[string]string `yaml:"milestone"`
+	URL               string
 
 	Tracked bool
 }
@@ -78,7 +82,7 @@ func issueToKEP(issue *github.Issue) *KEP {
 		URL:         *issue.HTMLURL,
 	}
 	if issue.Milestone != nil {
-		kep.Milstone = *issue.Milestone.Title
+		kep.LatestMilestone = *issue.Milestone.Title
 	}
 	for i := range issue.Labels {
 		if strings.Contains(*issue.Labels[i].Name, "sig") {
@@ -141,6 +145,29 @@ func filterTracked(issues []*github.Issue) []*github.Issue {
 		}
 	}
 	return result
+}
+
+func FindKEPYaml(kepNumber string) (string, error) {
+	issueInt, _ := strconv.Atoi(kepNumber)
+	issue, _, _ := c.Issues.Get(context.Background(), owner, repo, issueInt)
+	kep := issueToKEP(issue)
+	path := fmt.Sprintf("/keps/sig-%s/", kep.SIG)
+	_, kepDirContent, _, err := c.Repositories.GetContents(context.Background(), "kubernetes", "enhancements", path, &github.RepositoryContentGetOptions{})
+	if err != nil {
+		return "", err
+	}
+	for i := range kepDirContent {
+		dir := kepDirContent[i]
+		if strings.Contains(*dir.Name, kep.IssueNumber) {
+			kepPath := fmt.Sprintf("%s/kep.yaml", *dir.Path)
+			kepContentEncoded, _, _, err := c.Repositories.GetContents(context.Background(), "kubernetes", "enhancements", kepPath, &github.RepositoryContentGetOptions{})
+			if err != nil {
+				return "", err
+			}
+			return kepContentEncoded.GetContent()
+		}
+	}
+	return "", nil
 }
 
 func splitLabel(label string) string {
