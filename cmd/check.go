@@ -16,9 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/salaxander/kept/pkg/kep"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +25,7 @@ var checkCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(kep.FindKEPYaml(args[0]))
+
 	},
 }
 

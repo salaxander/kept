@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/salaxander/kept/pkg/kep"
-	"github.com/salaxander/kept/pkg/util"
 )
 
 // getCmd represents the get command
@@ -32,38 +31,25 @@ var getCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		pterm.Println("")
 		getSpinner, _ := pterm.DefaultSpinner.Start("Getting KEP...")
-		k := kep.Get(args[0])
-		if open {
-			util.Openbrowser(k.URL)
-			return
-		}
+
+		k, _ := kep.Get(args[0])
 
 		headerStyle := pterm.NewStyle(pterm.FgLightCyan, pterm.Bold)
 		pterm.DefaultSection.WithStyle(headerStyle).WithIndentCharacter("\u2638\ufe0f ").Printfln("KEP %s", k.IssueNumber)
-		pterm.Printfln("Title: %s", k.Title)
-		if k.LatestMilestone != "" {
-			pterm.Printfln("Milestone: %s", k.LatestMilestone)
-		}
-		if k.SIG != "" {
-			pterm.Println("SIG: %s", k.SIG)
-		}
-		if k.Stage != "" {
-			pterm.Println("Stage: %s", k.Stage)
-		}
-		if k.Tracked {
-			pterm.Println("Tracked: yes")
-		}
-		pterm.Printfln("URL: %s", k.URL)
+		pterm.DefaultTable.WithData(pterm.TableData{
+			{pterm.Bold.Sprint("Title"), k.Title},
+			{pterm.Bold.Sprint("SIG"), k.SIG},
+			{pterm.Bold.Sprint("Status"), k.Status},
+			{pterm.Bold.Sprint("Stage"), k.Stage},
+			{pterm.Bold.Sprint("Milestone"), k.LatestMilestone},
+			{pterm.Bold.Sprint("URL"), k.URL},
+		}).Render()
 
 		pterm.Println("")
 		getSpinner.Success("Found KEP!")
 	},
 }
 
-var open bool
-
 func init() {
 	rootCmd.AddCommand(getCmd)
-
-	getCmd.Flags().BoolVarP(&open, "open", "o", false, "Open the KEP in your default web browser.")
 }
