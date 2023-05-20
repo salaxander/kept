@@ -103,32 +103,36 @@ func runYamlChecks(opts *checkOpts) error {
 	// Check all fields in the template exist in the current KEP
 	for key := range templateMap {
 		if _, exists := kepMap[key]; !exists {
-			fmt.Printf("Field '%s' does not exist in KEP.\n", key)
+			pterm.Printf("❌  Field '%s' does not exist in KEP.\n", key)
 		}
 	}
 
 	// Check that correct stage is set in yaml
 	if _, exists := kepMap[yamlStage]; !exists {
-		fmt.Printf("stage '%s' does not exist in KEP yaml.\n", yamlStage)
+		return fmt.Errorf("❌  stage '%s' does not exist in KEP yaml.\n", yamlStage)
 	} else {
 		if kepMap[yamlStage] != opts.stage {
-			fmt.Printf("stage '%s' is not set to '%s' in KEP yaml.\n", yamlStage, opts.stage)
+			pterm.Printf("❌  stage '%s' is not set to '%s' in KEP yaml.\n", yamlStage, opts.stage)
+		} else {
+			pterm.Printf("✅  correct stage set in KEP yaml\n")
 		}
 	}
 
 	// Check that correct release is set in yaml
 	if _, exists := kepMap[yamlMilestone]; !exists {
-		fmt.Printf("stage '%s' does not exist in KEP yaml.\n", yamlMilestone)
+		pterm.Printf("stage '%s' does not exist in KEP yaml.\n", yamlMilestone)
 	} else {
 		milestoneMap := convertToMapString(kepMap[yamlMilestone].(map[interface{}]interface{}))
 		if err != nil {
-			return fmt.Errorf("failed to unmarshal YAML: %s", err)
+			pterm.Printf("❌  failed to unmarshal YAML: %s", err)
 		}
 		if _, stageExists := milestoneMap[opts.stage]; !stageExists {
-			return fmt.Errorf("stage '%s' does not exist in KEP yaml for milestone %s", opts.stage, milestoneMap)
+			pterm.Printf("❌  stage '%s' does not exist in KEP yaml for milestone %s\n", opts.stage, milestoneMap)
 		} else {
 			if milestoneMap[opts.stage] != opts.release {
-				fmt.Printf("release '%s' is not set to '%s' in KEP yaml.\n", milestoneMap[opts.stage], opts.release)
+				pterm.Printf("❌  release '%s' is not set to '%s' in KEP yaml.\n", milestoneMap[opts.stage], opts.release)
+			} else {
+				pterm.Printf("✅  correct milestone set in KEP yaml\n")
 			}
 		}
 	}
@@ -136,24 +140,28 @@ func runYamlChecks(opts *checkOpts) error {
 	// Check that correct status is set in yaml
 	if opts.stage == graduating || opts.stage == stable {
 		if _, exists := kepMap[yamlStatus]; !exists {
-			fmt.Printf("status '%s' does not exist in KEP yaml.\n", yamlStatus)
+			pterm.Printf("❌  status '%s' does not exist in KEP yaml.\n", yamlStatus)
 		} else {
 			if kepMap[yamlStatus] != "implemented" {
-				fmt.Printf("status '%s' is not set to '%s' in KEP yaml.\n", yamlStatus, "implemented")
+				pterm.Printf("❌  status '%s' is not set to '%s' in KEP yaml.\n", yamlStatus, "implemented")
+			} else {
+				pterm.Printf("✅  correct status set in KEP yaml\n")
 			}
 		}
 	} else {
 		// alpha/beta
 		if _, exists := kepMap[yamlStatus]; !exists {
-			fmt.Printf("status '%s' does not exist in KEP yaml.\n", yamlStatus)
+			pterm.Printf("❌  status '%s' does not exist in KEP yaml.\n", yamlStatus)
 		} else {
 			if kepMap[yamlStatus] != "implementable" {
-				fmt.Printf("status '%s' is not set to '%s' in KEP yaml.\n", yamlStatus, "implementable")
+				pterm.Printf("❌  status '%s' is not set to '%s' in KEP yaml.\n", yamlStatus, "implementable")
+			} else {
+				pterm.Printf("✅  correct status set in KEP yaml\n")
 			}
 		}
 	}
 
-	fmt.Println("KEP passed checks.")
+	pterm.Println("Finished KEP checks")
 	return nil
 }
 
