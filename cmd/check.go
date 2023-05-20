@@ -21,7 +21,7 @@ const (
 	stable     = "stable"
 )
 
-// options for running `meshctl check`, which checks all clusters
+// options for running `keptctl check`, which checks all clusters
 type checkOpts struct {
 	url     string
 	release string
