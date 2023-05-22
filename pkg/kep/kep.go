@@ -23,7 +23,7 @@ func init() {
 
 type KEP struct {
 	IssueNumber string
-	Milstone    string
+	Milestone   string
 	SIG         string
 	Stage       string
 	Title       string
@@ -78,7 +78,7 @@ func issueToKEP(issue *github.Issue) *KEP {
 		URL:         *issue.HTMLURL,
 	}
 	if issue.Milestone != nil {
-		kep.Milstone = *issue.Milestone.Title
+		kep.Milestone = *issue.Milestone.Title
 	}
 	for i := range issue.Labels {
 		if strings.Contains(*issue.Labels[i].Name, "sig") {
